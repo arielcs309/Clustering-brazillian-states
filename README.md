@@ -73,7 +73,7 @@ chart.Correlation((base[2:10]), histogram = TRUE)
 
 ```
 
-# Autor
+# Author
 
 Ariel Sousa
 
