@@ -1,5 +1,3 @@
-
-#Importando a base#
 library(readxl)
 base <- read_excel("C:/Users/mateus/Documents/Pessoal/USP Esalq/TCC/IBGE_estados2.xlsx")
 View(base)
@@ -7,7 +5,7 @@ summary(base)
 
 library(ggpubr)
 
-#Limpando a base#
+#Cleaning DB
 base$Codigo <- NULL
 base$Gentílico<-NULL
 base$Governador <- NULL
