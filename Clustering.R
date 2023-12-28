@@ -23,7 +23,6 @@ base$Densidade_demografica <- NULL
 summary(base)
 
   #---- Depois de limpar a base vamos para os códigos de Aprendizado não supervisionado Cluster----#
-
 pacotes <- c("plotly", #plataforma gráfica
              "tidyverse", #carregar outros pacotes do R
              "ggrepel", #geoms de texto e rótulo para 'ggplot2' que ajudam a
@@ -56,8 +55,8 @@ view(IBGE_padronizado)
 #matriz de dissimilaridade
 matriz_D <- IBGE_padronizado %>% 
   dist(method = "euclidean")
-#single linkage
 
+#single linkage
 cluster_hier_single <- agnes(x = matriz_D, method = "single")
 # Construção do dendrograma "single linkage"
 
