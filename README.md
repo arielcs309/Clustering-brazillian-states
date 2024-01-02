@@ -37,7 +37,7 @@ packages <- c("plotly", #graph platform
              "factoextra", #função 'fviz_dend' to build dendrograms
              "ade4")
 
-# Use Scale function to make the indicators standart
+# Use Scale function to make the indicators standart. Average becomes 0 and standart deviation becomes 1.
 IBGE_padronizado <- as.data.frame(scale(base[,2:10]))
 view(IBGE_padronizado)
 
