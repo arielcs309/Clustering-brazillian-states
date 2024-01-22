@@ -14,11 +14,21 @@ The data was taken from IBGE, TSE and Ministério da Educação, which are publi
 ![cluster](https://github.com/arielcs309/assets/blob/main/Brazil%20map.png)
 
 ## clusters table
+It was used the group by to gather all the states from each cluster and then I chose the mean in each variable.
+The first cluster for example had the highest vote for the candidate 1, the lowest GDP, the highest homicide rate and the per capita income was the lowest compared to the other clusters.
+The second cluster had the best per capita income 
+The third cluster had the highest percentage of votes for the candidate 2, the gini index was the lowest (that means the social inequality is not so big) and the unemployment rate is the lowest.
+the forth cluster is composed by one state, which is an outlier. The GDP contrants from the other states. It is São Paulo the city where the economy is the best. 
 ![table 1](https://github.com/arielcs309/assets/blob/main/Table%20Clusters.png)
 
 ## Dendrogram map
+Dendrograms have a tree-like structure, where each "node" represents a group or cluster of entities, and the branches represent the relationships between these clusters. It is a graph to represent the hierarchy of how the clusters are organized.
 ![Dendrogram](https://github.com/arielcs309/assets/blob/main/dendrogram.png)
 
+## Analysis of Variance (ANOVA)
+All variables had a p-value less than 0.05, leading to the rejection of the null hypothesis. This indicates that they demonstrated significance in differentiating the clusters.
+Null Hypothesis (H0): The means of the groups are equal.
+Alternative Hypothesis (H1): At least one group mean is different from the others.
 # Language
 ![R](https://github.com/arielcs309/assets/blob/main/R%20language.jpg)
 
@@ -74,7 +84,6 @@ chart.Correlation((base[2:10]), histogram = TRUE)
 ```
 
 # Author
-
 Ariel Sousa
-
 https://www.linkedin.com/in/ariel-candido-22684578/
+https://www.kaggle.com/arielsousa
