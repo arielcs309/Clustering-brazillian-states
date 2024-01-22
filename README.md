@@ -13,7 +13,7 @@ The data was taken from IBGE, TSE and Ministério da Educação, which are publi
 ## States divided after clustering
 ![cluster](https://github.com/arielcs309/assets/blob/main/Brazil%20map.png)
 
-## clusters table
+## Clusters table
 It was used the group by to gather all the states from each cluster and then I chose the mean in each variable.
 The first cluster for example had the highest vote for the candidate 1, the lowest GDP, the highest homicide rate and the per capita income was the lowest compared to the other clusters.
 The second cluster had the best per capita income 
@@ -26,9 +26,11 @@ Dendrograms have a tree-like structure, where each "node" represents a group or 
 ![Dendrogram](https://github.com/arielcs309/assets/blob/main/dendrogram.png)
 
 ## Analysis of Variance (ANOVA)
+
 All variables had a p-value less than 0.05, leading to the rejection of the null hypothesis. This indicates that they demonstrated significance in differentiating the clusters.
 Null Hypothesis (H0): The means of the groups are equal.
 Alternative Hypothesis (H1): At least one group mean is different from the others.
+![P Value](https://github.com/arielcs309/assets/blob/main/P%20value.png)
 # Language
 ![R](https://github.com/arielcs309/assets/blob/main/R%20language.jpg)
 
