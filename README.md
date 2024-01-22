@@ -86,6 +86,7 @@ chart.Correlation((base[2:10]), histogram = TRUE)
 ```
 
 # Author
-Ariel Sousa
-https://www.linkedin.com/in/ariel-candido-22684578/
-https://www.kaggle.com/arielsousa
+Ariel Sousa. 
+See my [Linkedin](https://www.linkedin.com/in/ariel-candido-22684578/) and my [Kaggle](https://www.kaggle.com/arielsousa)
+
+
