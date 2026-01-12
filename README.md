@@ -11,7 +11,7 @@ The data was taken from IBGE, TSE and Ministério da Educação, which are publi
 
 
 ## States divided after clustering
-![cluster](https://github.com/arielcs309/assets/blob/main/Brazil%20map.png)
+![cluster](https://github.com/arielcs309/assets/blob/main/mapa_clusters_brasil.png)
 
 ## Clusters table
 It was used the group by to gather all the states from each cluster and then I chose the mean in each variable.
