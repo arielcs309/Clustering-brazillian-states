@@ -7,26 +7,39 @@
 # -----------------------------
 # 1. Configurações iniciais
 # -----------------------------
-set.seed(42)
+pacotes <- c(
+  "readxl",
+  "dplyr",
+  "ggplot2",
+  "geobr",
+  "sf",
+  "cluster",
+  "factoextra",
+  "ggpubr",
+  "corrplot"
+)
 
-library(readxl)
-library(tidyverse)
-library(cluster)
-library(factoextra)
-library(ggpubr)
-library(corrplot)
+pacotes_nao_instalados <- pacotes[!pacotes %in% installed.packages()[, "Package"]]
+
+if (length(pacotes_nao_instalados) > 0) {
+  install.packages(pacotes_nao_instalados)
+}
+
+lapply(pacotes, library, character.only = TRUE)
+
+set.seed(42)
 
 # -----------------------------
 # 2. Leitura dos dados
 # -----------------------------
-base <- read_excel("data/IBGE_estados2.xlsx")
+# UF já está em sigla (AC, AM, SP, ...)
+base <- read_excel("C:/Users/mcs30/R/IBGE_estados2.xlsx")
 
-# Visualização inicial
 glimpse(base)
 summary(base)
 
 # -----------------------------
-# 3. Limpeza e seleção de variáveis
+# 3. Seleção das variáveis
 # -----------------------------
 base <- base %>%
   select(
@@ -41,8 +54,6 @@ base <- base %>%
     Indice_desocupacao,
     Rendimento_mensal_domiciliar_per_capita
   )
-
-summary(base)
 
 # -----------------------------
 # 4. Padronização (Z-score)
@@ -59,7 +70,7 @@ matriz_dist <- dist(dados_padronizados, method = "euclidean")
 
 # -----------------------------
 # 6. Clusterização hierárquica
-# Método escolhido: Average Linkage
+# Método: Average Linkage
 # -----------------------------
 cluster_hier <- agnes(matriz_dist, method = "average")
 
@@ -141,5 +152,72 @@ corrplot(
 # -----------------------------
 # 12. Exportação dos resultados
 # -----------------------------
-write.csv(analise_clusters, "outputs/cluster_summary.csv", row.names = FALSE)
-write.csv(base, "outputs/base_com_clusters.csv", row.names = FALSE)
+write.csv(
+  analise_clusters,
+  "C:/Users/mcs30/R/outputs/cluster_summary.csv",
+  row.names = FALSE
+)
+
+write.csv(
+  base,
+  "C:/Users/mcs30/R/outputs/base_com_clusters.csv",
+  row.names = FALSE
+)
+
+# -----------------------------
+# 13. Mapa do Brasil por clusters
+# -----------------------------
+
+# Leitura do mapa dos estados brasileiros
+mapa_estados <- read_state(year = 2020)
+
+# Join do mapa com a base de dados (UF em sigla)
+mapa_cluster <- mapa_estados %>%
+  left_join(base, by = c("abbrev_state" = "UF"))
+
+# Plot do mapa com paleta personalizada
+mapa_clusters_plot <- ggplot(mapa_cluster) +
+  geom_sf(aes(fill = cluster_H), color = "white", size = 0.2) +
+  scale_fill_manual(
+    values = c(
+      "#5f6f3a",  # mais escuro
+      "#f2d680",   #base
+      "#eb9c4d",  # mais claro
+      "#f3ffcf"   # bem claro (outlier)
+    ),
+    name = "Clusters",
+    labels = c(
+      "Low income, high homicide, Candidate 1 majority",
+      "Higher income and GDP",
+      "Lower inequality and unemployment, Candidate 2 majority",
+      "Economic outlier (São Paulo)"
+    )
+  ) +
+  labs(
+    title = "Brazilian States Grouped by Socioeconomic and Political Similarity",
+    subtitle = "Hierarchical clustering based on socioeconomic indicators and 2022 presidential votes",
+    caption = "Sources: IBGE, TSE, Ministry of Education"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "right",
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(size = 10),
+    legend.title = element_text(face = "bold")
+  )
+
+# Exibir o mapa
+print(mapa_clusters_plot)
+
+
+# -----------------------------
+# 14. Exportação do mapa
+# -----------------------------
+
+ggsave(
+  filename = "C:/Users/mcs30/R/outputs/mapa_clusters_brasil.png",
+  plot = mapa_clusters_plot,
+  width = 10,
+  height = 8,
+  dpi = 300
+)
