@@ -1,149 +1,145 @@
+# =========================================================
+# Clustering dos Estados Brasileiros
+# MBA Data Science & Analytics – USP ESALQ
+# Autor: Ariel Sousa
+# =========================================================
+
+# -----------------------------
+# 1. Configurações iniciais
+# -----------------------------
+set.seed(42)
+
 library(readxl)
-base <- read_excel("C:/Users/mateus/Documents/Pessoal/USP Esalq/TCC/IBGE_estados2.xlsx")
-View(base)
-summary(base)
-
+library(tidyverse)
+library(cluster)
+library(factoextra)
 library(ggpubr)
+library(corrplot)
 
-#Cleaning DB
-base$Codigo <- NULL
-base$Gentílico<-NULL
-base$Governador <- NULL
-base$Capital <- NULL
-base$Area_territorial <- NULL
-base$Receitas_realizadas_2017 <- NULL
-base$IDH_2010 <- NULL
-base$Densidade_demografica <- NULL
-base$Matriculas_ens_fun_2021 <- NULL
-base$Despesas_empenhadas_2017 <- NULL
-base$Total_veiculos_2022 <- NULL
-base$Populacao_estimada <- NULL
-base$Densidade_demografica <- NULL
+# -----------------------------
+# 2. Leitura dos dados
+# -----------------------------
+base <- read_excel("data/IBGE_estados2.xlsx")
+
+# Visualização inicial
+glimpse(base)
+summary(base)
+
+# -----------------------------
+# 3. Limpeza e seleção de variáveis
+# -----------------------------
+base <- base %>%
+  select(
+    UF,
+    IDH_2020,
+    Votos_lula,
+    Votos_bolsonaro,
+    PIB_2021,
+    IDEB_2021,
+    Taxa_homicidios,
+    Indice_gini,
+    Indice_desocupacao,
+    Rendimento_mensal_domiciliar_per_capita
+  )
 
 summary(base)
 
-  #---- Depois de limpar a base vamos para os códigos de Aprendizado não supervisionado Cluster----#
-pacotes <- c("plotly", #plataforma gráfica
-             "tidyverse", #carregar outros pacotes do R
-             "ggrepel", #geoms de texto e rótulo para 'ggplot2' que ajudam a
-             #evitar sobreposição de textos
-             "knitr", "kableExtra", #formatação de tabelas
-             "reshape2", #função 'melt'
-             "misc3d", #gráficos 3D
-             "plot3D", #gráficos 3D
-             "cluster", #função 'agnes' para elaboração de clusters hierárquicos
-             "factoextra", #função 'fviz_dend' para construção de dendrogramas
-             "ade4") #função 'ade4' para matriz de distâncias em var. binárias
-options(rgl.debug = TRUE)
+# -----------------------------
+# 4. Padronização (Z-score)
+# -----------------------------
+dados_padronizados <- base %>%
+  select(-UF) %>%
+  scale() %>%
+  as.data.frame()
 
-if(sum(as.numeric(!pacotes %in% installed.packages())) != 0){
-  instalador <- pacotes[!pacotes %in% installed.packages()]
-  for(i in 1:length(instalador)) {
-    install.packages(instalador, dependencies = T)
-    break()}
-  sapply(pacotes, require, character = T) 
-} else {
-  sapply(pacotes, require, character = T) 
-}
+# -----------------------------
+# 5. Matriz de dissimilaridade
+# -----------------------------
+matriz_dist <- dist(dados_padronizados, method = "euclidean")
 
-# É necessário padronizar as variáveis pois elas têm medidas distintas
-# É feito um Zscore com o comando Scale
+# -----------------------------
+# 6. Clusterização hierárquica
+# Método escolhido: Average Linkage
+# -----------------------------
+cluster_hier <- agnes(matriz_dist, method = "average")
 
-IBGE_padronizado <- as.data.frame(scale(base[,2:10]))
-view(IBGE_padronizado)
+# -----------------------------
+# 7. Dendrograma
+# -----------------------------
+fviz_dend(
+  cluster_hier,
+  k = 4,
+  rect = TRUE,
+  rect_fill = TRUE,
+  rect_border = "black",
+  show_labels = FALSE,
+  ggtheme = theme_bw()
+)
 
-#matriz de dissimilaridade
-matriz_D <- IBGE_padronizado %>% 
-  dist(method = "euclidean")
+# -----------------------------
+# 8. Definição dos clusters
+# -----------------------------
+base$cluster_H <- factor(cutree(cluster_hier, k = 4))
+dados_padronizados$cluster_H <- base$cluster_H
 
-#single linkage
-cluster_hier_single <- agnes(x = matriz_D, method = "single")
-# Construção do dendrograma "single linkage"
+# -----------------------------
+# 9. Validação estatística (ANOVA)
+# -----------------------------
+variaveis_anova <- c(
+  "Votos_lula",
+  "Votos_bolsonaro",
+  "IDH_2020",
+  "Rendimento_mensal_domiciliar_per_capita",
+  "PIB_2021",
+  "IDEB_2021",
+  "Taxa_homicidios",
+  "Indice_gini",
+  "Indice_desocupacao"
+)
 
-dev.off()
-fviz_dend(x = cluster_hier_single, show_labels = F)
+anova_resultados <- lapply(variaveis_anova, function(var) {
+  modelo <- aov(as.formula(paste(var, "~ cluster_H")), data = base)
+  summary(modelo)
+})
 
-# Construção do dendrograma "complete linkage"
-fviz_dend(x = cluster_hier_complete, show_labels = F)
+names(anova_resultados) <- variaveis_anova
+anova_resultados
 
-# 2º Teste: Elaboração da clusterização hierárquica como "complete linkage"
-cluster_hier_complete <- agnes(x = matriz_D, method = "complete")
+# -----------------------------
+# 10. Análise descritiva dos clusters
+# -----------------------------
+analise_clusters <- base %>%
+  group_by(cluster_H) %>%
+  summarise(
+    IDH = mean(IDH_2020, na.rm = TRUE),
+    Votos_Lula = mean(Votos_lula, na.rm = TRUE),
+    Votos_Bolsonaro = mean(Votos_bolsonaro, na.rm = TRUE),
+    PIB = mean(PIB_2021, na.rm = TRUE),
+    IDEB = mean(IDEB_2021, na.rm = TRUE),
+    Homicidios = mean(Taxa_homicidios, na.rm = TRUE),
+    Gini = mean(Indice_gini, na.rm = TRUE),
+    Desocupacao = mean(Indice_desocupacao, na.rm = TRUE),
+    Rendimento = mean(Rendimento_mensal_domiciliar_per_capita, na.rm = TRUE)
+  )
 
+analise_clusters
 
-# 3º Teste: Elaboração da clusterização hierárquica como "average linkage"
-cluster_hier_average <- agnes(x = matriz_D, method = "average")
+# -----------------------------
+# 11. Correlação de Pearson
+# -----------------------------
+matriz_cor <- cor(base %>% select(-UF, -cluster_H))
 
-# Construção do dendrograma "average linkage"
-fviz_dend(x = cluster_hier_average, show_labels = F)
-#Vamos aplicar a correlação de pearson para entender como as variáveis se comportam entre si
+corrplot(
+  matriz_cor,
+  method = "color",
+  type = "upper",
+  tl.cex = 0.8,
+  addCoef.col = "black",
+  number.cex = 0.7
+)
 
-## Vamos optar pelo Average linkage 
-# Dendrograma com visualização dos clusters (selecionando por "altura")
-fviz_dend(x = cluster_hier_average,
-          h = 5.0,
-          color_labels_by_k = F,
-          rect = T,
-          rect_fill = T,
-          rect_border = "black",
-          lwd = 1,
-          show_labels = F,
-          ggtheme = theme_bw())
-
-
-# Vamos detalhar esse esquema hierárquico
-coeficientes <- sort(cluster_hier_average$height, decreasing = FALSE) 
-esquema <- as.data.frame(cbind(cluster_hier_average$merge, coeficientes))
-names(esquema) <- c("Cluster1", "Cluster2", "Coeficientes")
-esquema
-
-## Portanto, vamos gerar uma variável indicando 4 clusters
-
-base$cluster_H <- factor(cutree(tree = cluster_hier_average, k = 4))
-IBGE_padronizado$cluster_H <- factor(cutree(tree = cluster_hier_complete, k = 4))
-
-# A seguir, vamos verificar se todas as variáveis ajudam na formação dos grupos
-
-summary(anova_votos_lula <- aov(formula = Votos_lula ~ cluster_H,
-                                data = IBGE_padronizado))
-
-summary(anova_votos_bolsonaro <- aov(formula = Votos_bolsonaro ~ cluster_H,
-                             data = IBGE_padronizado))
-
-summary(anova_IDH <- aov(formula = IDH_2020 ~ cluster_H,
-                            data = IBGE_padronizado))
-
-summary(anova_rendimento <- aov(formula = Rendimento_mensal_domiciliar_per_capita ~ cluster_H,
-                         data = IBGE_padronizado))
-
-summary(anova_PIB <- aov(formula = PIB_2021 ~ cluster_H,
-                         data = IBGE_padronizado))
-
-
-summary(anova_IDEB <- aov(formula = IDEB_2021 ~ cluster_H,
-                         data = IBGE_padronizado))
-
-
-summary(anova_homicidios <- aov(formula = Taxa_homicidios ~ cluster_H,
-                         data = IBGE_padronizado))
-
-summary(anova_gini <- aov(formula = Indice_gini ~ cluster_H,
-                         data = IBGE_padronizado))
-
-summary(anova_desocupacao <- aov(formula = Indice_desocupacao ~ cluster_H,
-                         data = IBGE_padronizado))
-
-
-analise <- group_by(base, cluster_H)%>%
-  summarise(IDH_2020 = mean(IDH_2020, na.rm = TRUE),
-            Votos_lula = mean(Votos_lula, na.rm = TRUE),
-            Votos_bolsonaro = mean(Votos_bolsonaro, na.rm = TRUE),
-            PIB = mean(PIB_2021, na.rm = TRUE),
-            IDEB = mean(IDEB_2021, na.rm = TRUE),
-            Homicidios = mean(Taxa_homicidios, na.rm = TRUE),
-            Gini = mean(Indice_gini, na.rm = TRUE),
-            Desocupacao = mean(Indice_desocupacao, na.rm = TRUE),
-            Rendimento = mean(Rendimento_mensal_domiciliar_per_capita, na.rm = TRUE))
-
-
-chart.Correlation((base[2:10]), histogram = TRUE)
-
+# -----------------------------
+# 12. Exportação dos resultados
+# -----------------------------
+write.csv(analise_clusters, "outputs/cluster_summary.csv", row.names = FALSE)
+write.csv(base, "outputs/base_com_clusters.csv", row.names = FALSE)
