@@ -21,6 +21,9 @@ The third cluster had the highest percentage of votes for the candidate 2, the g
 the forth cluster is composed by one state, which is an outlier. The GDP contrants from the other states. It is São Paulo the city where the economy is the best. 
 ![table 1](https://github.com/arielcs309/assets/blob/main/Table%20Clusters.png)
 
+## Pearson Correlation
+![Pearson Correlation](https://github.com/arielcs309/assets/blob/main/Correlacao.png)
+
 ## Dendrogram map
 Dendrograms have a tree-like structure, where each "node" represents a group or cluster of entities, and the branches represent the relationships between these clusters. It is a graph to represent the hierarchy of how the clusters are organized.
 ![Dendrogram](https://github.com/arielcs309/assets/blob/main/dendrogram.png)
